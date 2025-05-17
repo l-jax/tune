@@ -7,11 +7,6 @@ const (
 
 var thresholds = []int{0, 50, 1000, 5000, 10_000, 50_000, 100_000, 250_000, 500_000, 1_000_000}
 
-type Params struct {
-	threshold   int
-	scaleFactor float64
-}
-
 func GetParamsForDailyAutovacuum(tuples, dailyUpdateOrDelete float64) []Params {
 	var params []Params
 	for _, threshold := range thresholds {
@@ -23,14 +18,6 @@ func GetParamsForDailyAutovacuum(tuples, dailyUpdateOrDelete float64) []Params {
 	}
 
 	return params
-}
-
-func getAutovacuumThreshold(baseThreshold, scaleFactor, tuples float64) float64 {
-	return baseThreshold + (scaleFactor * tuples)
-}
-
-func getAutovacuumPerDay(threshold, dailyUpdateOrDelete float64) float64 {
-	return dailyUpdateOrDelete / threshold
 }
 
 func getScaleFactorForDailyVacuum(tuples, dailyUpdateOrDelete float64, threshold int) float64 {
