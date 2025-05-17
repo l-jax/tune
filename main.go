@@ -1,5 +1,14 @@
 package vtune
 
+type Params struct {
+	threshold   int
+	scaleFactor float64
+}
+
+func GetParamsForDailyAutovacuum(tuples, dailyUpdateOrDelete float64) Params {
+	return Params{}
+}
+
 func getAutovacuumThreshold(baseThreshold, scaleFactor, tuples float64) float64 {
 	return baseThreshold + (scaleFactor * tuples)
 }

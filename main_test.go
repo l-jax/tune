@@ -57,6 +57,22 @@ func TestGetThresholdForDailyVacuum(t *testing.T) {
 	assertInts(t, got, want)
 }
 
+func TestGetStorageParamsForDailyVacuum(t *testing.T) {
+	tuples := 1000.0
+	dailyUpdateOrDelete := 100.0
+	want := Params{50, 0.05}
+
+	got := GetParamsForDailyAutovacuum(tuples, dailyUpdateOrDelete)
+
+	assertParams(t, got, want)
+}
+
+func assertParams(t *testing.T, got Params, want Params) {
+	if got != want {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
 func assertFloats(t *testing.T, got, want float64) {
 	t.Helper()
 	if got != want {
