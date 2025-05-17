@@ -4,34 +4,34 @@ import "testing"
 
 func TestGetScaleFactorForDailyVacuum(t *testing.T) {
 	tuples := 1000.0
-	dailyUpdateOrDelete := 100.0
+	updatesPerDay := 100.0
 	want := 0.05
 
-	got := getScaleFactorForDailyVacuum(tuples, dailyUpdateOrDelete, 50)
+	got := getScaleFactor(tuples, updatesPerDay, 50)
 
 	assertFloats(t, got, want)
 }
 
 func TestGetThresholdForDailyVacuum(t *testing.T) {
 	tuples := 1000.0
-	dailyUpdateOrDelete := 100.0
+	updatesPerDay := 100.0
 	want := 50
 
-	got := getThresholdForDailyVacuum(tuples, dailyUpdateOrDelete, 0.05)
+	got := getThreshold(tuples, updatesPerDay, 0.05)
 
 	assertInts(t, got, want)
 }
 
 func TestGetParamsForDailyVacuum(t *testing.T) {
 	tuples := 1000.0
-	dailyUpdateOrDelete := 100.0
+	updatesPerDay := 100.0
 
 	want := []Params{
 		{0, 0.1},
 		{50, 0.05},
 	}
 
-	got := GetParamsForDailyAutovacuum(tuples, dailyUpdateOrDelete)
+	got := GetAutovacuumParams(tuples, updatesPerDay)
 
 	assertParams(t, got, want)
 }
