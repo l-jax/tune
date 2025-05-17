@@ -1,9 +1,5 @@
 package vtune
 
-const (
-	baseThreshold = 50
-)
-
 func getAutovacuumThreshold(baseThreshold, scaleFactor, tuples float64) float64 {
 	return baseThreshold + (scaleFactor * tuples)
 }
@@ -12,6 +8,10 @@ func getAutovacuumPerDay(threshold, dailyUpdateOrDelete float64) float64 {
 	return dailyUpdateOrDelete / threshold
 }
 
-func getScaleFactorForDailyVacuum(tuples, dailyUpdateOrDelete float64) float64 {
-	return (dailyUpdateOrDelete - baseThreshold) / tuples
+func getScaleFactorForDailyVacuum(tuples, dailyUpdateOrDelete float64, threshold int) float64 {
+	return (dailyUpdateOrDelete - float64(threshold)) / tuples
+}
+
+func getThresholdForDailyVacuum(tuples, dailyUpdateOrDelete, scaleFactor float64) int {
+	return int(dailyUpdateOrDelete - (scaleFactor * tuples))
 }

@@ -42,14 +42,31 @@ func TestGetScaleFactorForDailyVacuum(t *testing.T) {
 	dailyUpdateOrDelete := 100.0
 	want := 0.05
 
-	got := getScaleFactorForDailyVacuum(tuples, dailyUpdateOrDelete)
+	got := getScaleFactorForDailyVacuum(tuples, dailyUpdateOrDelete, 50)
 
 	assertFloats(t, got, want)
+}
+
+func TestGetThresholdForDailyVacuum(t *testing.T) {
+	tuples := 1000.0
+	dailyUpdateOrDelete := 100.0
+	want := 50
+
+	got := getThresholdForDailyVacuum(tuples, dailyUpdateOrDelete, 0.05)
+
+	assertInts(t, got, want)
 }
 
 func assertFloats(t *testing.T, got, want float64) {
 	t.Helper()
 	if got != want {
 		t.Errorf("got %f, want %f", got, want)
+	}
+}
+
+func assertInts(t *testing.T, got, want int) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got %d, want %d", got, want)
 	}
 }
