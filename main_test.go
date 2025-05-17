@@ -15,9 +15,30 @@ func TestGetAutovacuumThreshold(t *testing.T) {
 	for name, test := range thresholdTests {
 		t.Run(name, func(t *testing.T) {
 			got := getAutovacuumThreshold(test.baseThreshold, test.scaleFactor, test.tuples)
-			if got != test.want {
-				t.Errorf("got %f, want %f", got, test.want)
-			}
+			assertFloats(t, got, test.want)
 		})
+	}
+}
+
+var frequencyTests = map[string]struct {
+	threshold, dailyUpdateOrDelete, want float64
+}{
+	"fewer than one per day":   {250, 50, 0.2},
+	"greater than one per day": {250, 500, 2},
+	"one per day":              {250, 250, 1},
+}
+
+func TestAutovacuumFrequency(t *testing.T) {
+	for name, test := range frequencyTests {
+		t.Run(name, func(t *testing.T) {
+			got := getAutovacuumPerDay(test.threshold, test.dailyUpdateOrDelete)
+			assertFloats(t, got, test.want)
+		})
+	}
+}
+
+func assertFloats(t *testing.T, got, want float64) {
+	if got != want {
+		t.Errorf("got %f, want %f", got, want)
 	}
 }
