@@ -1,4 +1,4 @@
-package vtune
+package internal
 
 type Params struct {
 	baseThreshold int

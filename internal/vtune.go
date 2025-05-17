@@ -1,4 +1,4 @@
-package vtune
+package internal
 
 const (
 	minScaleFactor = 0.001

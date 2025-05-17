@@ -1,4 +1,4 @@
-package vtune
+package internal
 
 import "testing"
 
