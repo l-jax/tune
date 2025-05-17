@@ -2,6 +2,16 @@ package vtune
 
 import "testing"
 
+func TestGetScaleFactorForDailyVacuum(t *testing.T) {
+	tuples := 1000.0
+	dailyUpdateOrDelete := 100.0
+	want := 0.05
+
+	got := getScaleFactorForDailyVacuum(tuples, dailyUpdateOrDelete)
+
+	assertFloats(t, got, want)
+}
+
 var thresholdTests = map[string]struct {
 	baseThreshold, scaleFactor, tuples, want float64
 }{
