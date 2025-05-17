@@ -2,16 +2,6 @@ package vtune
 
 import "testing"
 
-func TestGetScaleFactorForDailyVacuum(t *testing.T) {
-	tuples := 1000.0
-	dailyUpdateOrDelete := 100.0
-	want := 0.05
-
-	got := getScaleFactorForDailyVacuum(tuples, dailyUpdateOrDelete)
-
-	assertFloats(t, got, want)
-}
-
 var thresholdTests = map[string]struct {
 	baseThreshold, scaleFactor, tuples, want float64
 }{
@@ -47,7 +37,18 @@ func TestAutovacuumFrequency(t *testing.T) {
 	}
 }
 
+func TestGetScaleFactorForDailyVacuum(t *testing.T) {
+	tuples := 1000.0
+	dailyUpdateOrDelete := 100.0
+	want := 0.05
+
+	got := getScaleFactorForDailyVacuum(tuples, dailyUpdateOrDelete)
+
+	assertFloats(t, got, want)
+}
+
 func assertFloats(t *testing.T, got, want float64) {
+	t.Helper()
 	if got != want {
 		t.Errorf("got %f, want %f", got, want)
 	}
