@@ -33,7 +33,7 @@ var frequencyTests = map[string]struct {
 func TestGetFrequency(t *testing.T) {
 	for name, test := range frequencyTests {
 		t.Run(name, func(t *testing.T) {
-			got := test.params.getFrequency(test.tuples, test.updatesPerDay)
+			got := test.params.GetFrequency(test.tuples, test.updatesPerDay)
 			assertFloats(t, got, test.want)
 		})
 	}

@@ -2,12 +2,21 @@ package internal
 
 import "testing"
 
+func TestGetVacuumsPerDayWithDefaultParams(t *testing.T) {
+	tuples := 1000.0
+	updates := 100.0
+	want := 0.4
+
+	got := GetVacuumsPerDay(tuples, updates, 0.2, 50)
+	assertFloats(t, got, want)
+}
+
 func TestGetScaleFactorForDailyVacuum(t *testing.T) {
 	tuples := 1000.0
 	updatesPerDay := 100.0
 	want := 0.05
 
-	got := getScaleFactor(tuples, updatesPerDay, 50)
+	got := getScaleFactorForDailyVacuum(tuples, updatesPerDay, 50)
 
 	assertFloats(t, got, want)
 }
@@ -17,7 +26,7 @@ func TestGetThresholdForDailyVacuum(t *testing.T) {
 	updatesPerDay := 100.0
 	want := 50
 
-	got := getThreshold(tuples, updatesPerDay, 0.05)
+	got := getThresholdForDailyVacuum(tuples, updatesPerDay, 0.05)
 
 	assertInts(t, got, want)
 }
@@ -31,7 +40,7 @@ func TestGetParamsForDailyVacuum(t *testing.T) {
 		{50, 0.05},
 	}
 
-	got := GetAutovacuumParams(tuples, updatesPerDay)
+	got := GetParamsForDailyVacuum(tuples, updatesPerDay)
 
 	assertParams(t, got, want)
 }
