@@ -4,36 +4,37 @@ import "testing"
 
 var thresholdTests = map[string]struct {
 	params       Params
-	tuples, want float64
+	tuples, want int
 }{
-	"defaults":                {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, want: 250.0},
-	"zero base baseThreshold": {params: Params{baseThreshold: 0, scaleFactor: 0.2}, tuples: 1000, want: 200.0},
-	"zero scale factor":       {params: Params{baseThreshold: 50, scaleFactor: 0}, tuples: 1000, want: 50.0},
-	"zero tuples":             {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 0, want: 50.0},
+	"defaults":                {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, want: 250},
+	"zero base baseThreshold": {params: Params{baseThreshold: 0, scaleFactor: 0.2}, tuples: 1000, want: 200},
+	"zero scale factor":       {params: Params{baseThreshold: 50, scaleFactor: 0}, tuples: 1000, want: 50},
+	"zero tuples":             {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 0, want: 50},
 }
 
 func TestGetThreshold(t *testing.T) {
 	for name, test := range thresholdTests {
 		t.Run(name, func(t *testing.T) {
 			got := test.params.getThreshold(test.tuples)
-			assertFloats(t, got, test.want)
+			assertInts(t, got, test.want)
 		})
 	}
 }
 
 var frequencyTests = map[string]struct {
-	params                      Params
-	tuples, updatesPerDay, want float64
+	params          Params
+	tuples, updates int
+	want            float64
 }{
-	"fewer than one per day":   {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, updatesPerDay: 50, want: 0.2},
-	"greater than one per day": {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, updatesPerDay: 500, want: 2},
-	"one per day":              {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, updatesPerDay: 250, want: 1},
+	"fewer than one per day":   {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, updates: 50, want: 0.2},
+	"greater than one per day": {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, updates: 500, want: 2},
+	"one per day":              {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, updates: 250, want: 1},
 }
 
 func TestGetFrequency(t *testing.T) {
 	for name, test := range frequencyTests {
 		t.Run(name, func(t *testing.T) {
-			got := test.params.GetFrequency(test.tuples, test.updatesPerDay)
+			got := test.params.GetFrequency(test.tuples, test.updates)
 			assertFloats(t, got, test.want)
 		})
 	}

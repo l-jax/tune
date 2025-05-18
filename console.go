@@ -17,7 +17,7 @@ const (
 
 func Run(out io.Writer) {
 	userInput := getUserInput()
-	vacuums := internal.GetVacuumsPerDay(float64(userInput.tuples), float64(userInput.updates), userInput.scaleFactor, userInput.threshold)
+	vacuums := internal.GetVacuumsPerDay(userInput.tuples, userInput.updates, userInput.threshold, userInput.scaleFactor)
 
 	fmt.Fprintf(out, "%s:%d\n%s:%d\n%s:%d\n%s:%.4f\n%s:%.4f\n\n",
 		tuples, userInput.tuples,
