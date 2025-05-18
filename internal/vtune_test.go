@@ -1,6 +1,9 @@
 package internal
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestGetVacuumsPerDayWithDefaultParams(t *testing.T) {
 	tuples := 1000
@@ -37,7 +40,11 @@ func TestGetParamsForDailyVacuum(t *testing.T) {
 
 	want := []Params{
 		{0, 0.1},
+		{5, 0.095},
+		{10, 0.09},
+		{20, 0.08},
 		{50, 0.05},
+		{100, 0},
 	}
 
 	got := GetParamsForDailyVacuum(tuples, updates)
@@ -45,12 +52,21 @@ func TestGetParamsForDailyVacuum(t *testing.T) {
 	assertParams(t, got, want)
 }
 
+func TestGetTestThresholds(t *testing.T) {
+	updates := 1000
+	want := []int{0, 50, 100, 200, 500, 1000}
+
+	got := getTestThresholds(updates)
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
 func assertParams(t *testing.T, got []Params, want []Params) {
 	t.Helper()
-	for i := range got {
-		if got[i] != want[i] {
-			t.Errorf("got %v, want %v", got[i], want[i])
-		}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
 	}
 }
 

@@ -1,11 +1,9 @@
 package internal
 
 const (
-	minScaleFactor = 0.0001
+	minScaleFactor = 0
 	maxScaleFactor = 1
 )
-
-var testThresholds = []int{0, 50, 1000, 5000, 10_000, 50_000, 100_000, 250_000}
 
 func GetVacuumsPerDay(tuples, updates, threshold int, scaleFactor float64) float64 {
 	params := Params{threshold, scaleFactor}
@@ -13,7 +11,9 @@ func GetVacuumsPerDay(tuples, updates, threshold int, scaleFactor float64) float
 }
 
 func GetParamsForDailyVacuum(tuples, updates int) []Params {
+	testThresholds := getTestThresholds(updates)
 	var params []Params
+
 	for _, threshold := range testThresholds {
 		scaleFactor := getScaleFactorForDailyVacuum(tuples, updates, threshold)
 		if scaleFactor < minScaleFactor || scaleFactor > maxScaleFactor {
@@ -31,4 +31,15 @@ func getScaleFactorForDailyVacuum(tuples, updates, threshold int) float64 {
 
 func getThresholdForDailyVacuum(tuples, updates int, scaleFactor float64) int {
 	return int(float64(updates) - (scaleFactor * float64(tuples)))
+}
+
+func getTestThresholds(updates int) []int {
+	return []int{
+		0,
+		updates / 20,
+		updates / 10,
+		updates / 5,
+		updates / 2,
+		updates,
+	}
 }
