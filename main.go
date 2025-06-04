@@ -16,6 +16,6 @@ func main() {
 	}
 
 	if m, ok := m.(model); ok {
-		fmt.Printf("Set autovacuum_vacuum_scale_factor to %.4f and autovacuum_vaccuum_threshold to %d for a daily vacuum\n", m.scaleFactor, m.threshold)
+		fmt.Printf("Set autovacuum_vacuum_scale_factor to %.4f and autovacuum_vaccuum_threshold to %d for a daily vacuum\n", m.params.scaleFactor, m.params.threshold)
 	}
 }

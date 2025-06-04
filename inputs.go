@@ -22,11 +22,10 @@ var (
 )
 
 type model struct {
-	focusIndex  int
-	inputs      []textinput.Model
-	cursorMode  cursor.Mode
-	threshold   uint
-	scaleFactor float64
+	focusIndex int
+	cursorMode cursor.Mode
+	inputs     []textinput.Model
+	params     Params
 }
 
 var questions = []string{
@@ -66,76 +65,21 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
 	case tea.KeyMsg:
+
 		switch msg.String() {
-		case "tab", "shift+tab", "enter", "up", "down":
-			s := msg.String()
 
-			if s == "enter" && m.focusIndex == len(m.inputs) {
-				numberOfRows, _ := strconv.ParseInt(m.inputs[0].Value(), 10, 64)
-				updatesPerDay, _ := strconv.ParseInt(m.inputs[1].Value(), 10, 64)
-				table, err := NewTable(uint(numberOfRows), uint(updatesPerDay))
+		case "ctrl+c", "q":
+			return m, tea.Quit
 
-				if err != nil {
-					fmt.Println(err)
-					return m, tea.Quit
-				}
-
-				params, err := suggestAutovacuumParameters(*table, 1.0)
-
-				if err != nil {
-					fmt.Println(err)
-					return m, tea.Quit
-				}
-
-				m.threshold = params.threshold
-				m.scaleFactor = params.scaleFactor
-				return m, tea.Quit
-			}
-
-			if s == "up" || s == "shift+tab" {
-				m.focusIndex--
-			} else {
-				m.focusIndex++
-			}
-
-			if m.focusIndex > len(m.inputs) {
-				m.focusIndex = 0
-			} else if m.focusIndex < 0 {
-				m.focusIndex = len(m.inputs)
-			}
-
-			cmds := make([]tea.Cmd, len(m.inputs))
-			for i := 0; i <= len(m.inputs)-1; i++ {
-				if i == m.focusIndex {
-					cmds[i] = m.inputs[i].Focus()
-					m.inputs[i].PromptStyle = focusedStyle
-					m.inputs[i].TextStyle = focusedStyle
-					continue
-				}
-
-				m.inputs[i].Blur()
-				m.inputs[i].PromptStyle = noStyle
-				m.inputs[i].TextStyle = noStyle
-			}
-
-			return m, tea.Batch(cmds...)
+		case "enter":
+			return m.moveCursor(msg.String())
 		}
 	}
 
 	cmd := m.updateInputs(msg)
-
 	return m, cmd
-}
-
-func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
-	cmds := make([]tea.Cmd, len(m.inputs))
-
-	for i := range m.inputs {
-		m.inputs[i], cmds[i] = m.inputs[i].Update(msg)
-	}
-
-	return tea.Batch(cmds...)
 }
 
 func (m model) View() string {
@@ -154,4 +98,65 @@ func (m model) View() string {
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 	return b.String()
+}
+
+func (m model) moveCursor(msg string) (tea.Model, tea.Cmd) {
+	s := msg
+
+	if s == "enter" && m.focusIndex == len(m.inputs) {
+		return m.calculateOutput()
+	}
+
+	//TODO validate input
+	cmds := m.updateFocus()
+	return m, tea.Batch(cmds...)
+}
+
+func (m model) updateFocus() []tea.Cmd {
+	m.focusIndex++
+	cmds := make([]tea.Cmd, len(m.inputs))
+	for i := 0; i <= len(m.inputs)-1; i++ {
+		if i == m.focusIndex {
+			cmds[i] = m.inputs[i].Focus()
+			m.inputs[i].PromptStyle = focusedStyle
+			m.inputs[i].TextStyle = focusedStyle
+			continue
+		}
+
+		m.inputs[i].Blur()
+		m.inputs[i].PromptStyle = noStyle
+		m.inputs[i].TextStyle = noStyle
+	}
+	return cmds
+}
+
+func (m model) calculateOutput() (tea.Model, tea.Cmd) {
+	numberOfRows, _ := strconv.ParseInt(m.inputs[0].Value(), 10, 64)
+	updatesPerDay, _ := strconv.ParseInt(m.inputs[1].Value(), 10, 64)
+	table, err := NewTable(uint(numberOfRows), uint(updatesPerDay))
+
+	if err != nil {
+		fmt.Println(err)
+		return m, tea.Quit
+	}
+
+	params, err := suggestAutovacuumParameters(*table, 1.0)
+
+	if err != nil {
+		fmt.Println(err)
+		return m, tea.Quit
+	}
+
+	m.params = *params
+	return m, tea.Quit
+}
+
+func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
+	cmds := make([]tea.Cmd, len(m.inputs))
+
+	for i := range m.inputs {
+		m.inputs[i], cmds[i] = m.inputs[i].Update(msg)
+	}
+
+	return tea.Batch(cmds...)
 }
