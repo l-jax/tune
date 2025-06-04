@@ -65,6 +65,23 @@ func TestSuggestAutovacuumParametersTableWithFewActiveRows(t *testing.T) {
 	}
 }
 
+func TestSuggestAutovacuumParametersTableWithActiveRowsBelowDefaultThreshold(t *testing.T) {
+	table := Table{2134, 12}
+
+	wantScaleFactor := 0.0
+	var wantThreshold uint64 = 12
+
+	params, _ := suggestAutovacuumParameters(table, defaultDaysBetweenVacuums)
+
+	if params.scaleFactor != wantScaleFactor {
+		t.Errorf("scaleFactor = %v, want %v", params.scaleFactor, wantScaleFactor)
+	}
+
+	if params.threshold != wantThreshold {
+		t.Errorf("threshold = %v, want %v", params.threshold, wantThreshold)
+	}
+}
+
 func TestCalculateScaleFactor(t *testing.T) {
 	for name, test := range scaleFactorTests {
 		t.Run(name, func(t *testing.T) {

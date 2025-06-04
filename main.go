@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
@@ -23,9 +22,12 @@ func main() {
 				Title("How many rows does your table have?").
 				Value(&rows).
 				Validate(func(str string) error {
-					_, err := strconv.Atoi(str)
+					i, err := strconv.ParseUint(str, 10, 64)
 					if err != nil {
-						return errors.New("not a number")
+						return ErrNotANumber
+					}
+					if i < 1 {
+						return ErrEmptyTable
 					}
 					return nil
 				}),
@@ -33,9 +35,12 @@ func main() {
 				Title("How many dead tuples per day?").
 				Value(&tuples).
 				Validate(func(str string) error {
-					_, err := strconv.Atoi(str)
+					i, err := strconv.ParseUint(str, 10, 64)
 					if err != nil {
-						return errors.New("not a number")
+						return ErrNotANumber
+					}
+					if i < 1 {
+						return ErrNoUpdates
 					}
 					return nil
 				}),
@@ -43,7 +48,6 @@ func main() {
 				Title("How often do you want to vacuum it?").
 				Options(
 					huh.NewOption("Every day", 1.0),
-					huh.NewOption("Twice a day", 0.5),
 				).
 				Value(&frequency),
 		),
@@ -55,7 +59,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	params, _ := calculateOutput()
+	params, err := calculateOutput()
+
+	if err != nil {
+		fmt.Println("Uh oh:", err)
+		os.Exit(1)
+	}
+
 	{
 		var sb strings.Builder
 		keyword := func(s string) string {
@@ -63,7 +73,7 @@ func main() {
 		}
 		fmt.Fprintf(&sb,
 			"%s\n\nYour table has %s rows with %s updates/day\n\n%s\n\nautovacuum_vacuum_scale_factor %s\n\nautovacuum_vacuum_threshold %s",
-			lipgloss.NewStyle().Bold(true).Render("FIX YOUR AUTOVACUUM"),
+			lipgloss.NewStyle().Bold(true).Render("FIX MY AUTOVACUUM"),
 			keyword(rows),
 			keyword(tuples),
 			lipgloss.NewStyle().Bold(true).Render("Try this:"),
@@ -85,6 +95,11 @@ func main() {
 func calculateOutput() (*Params, error) {
 	r, _ := strconv.ParseUint(rows, 10, 64)
 	t, _ := strconv.ParseUint(tuples, 10, 64)
-	table, _ := NewTable(r, t)
+	table, err := NewTable(r, t)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return suggestAutovacuumParameters(*table, frequency)
 }

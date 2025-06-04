@@ -7,6 +7,7 @@ import (
 const defaultThreshold = 50
 
 var (
+	ErrNotANumber           = fmt.Errorf("that's not a number")
 	ErrEmptyTable           = fmt.Errorf("table must have one or more rows")
 	ErrNoUpdates            = fmt.Errorf("table must have at least one update per day")
 	ErrNoDaysBetweenVacuums = fmt.Errorf("days between vacuums must be more than zero")
@@ -36,7 +37,13 @@ func NewTable(numberOfRows, updatesPerDay uint64) (*Table, error) {
 }
 
 func suggestAutovacuumParameters(table Table, daysBetweenVacuums float64) (*Params, error) {
-	scaleFactor, err := calculateScaleFactor(table, 50, daysBetweenVacuums)
+	var initialThreshold uint64 = defaultThreshold
+
+	if table.updatesPerDay < initialThreshold {
+		initialThreshold = table.updatesPerDay
+	}
+
+	scaleFactor, err := calculateScaleFactor(table, initialThreshold, daysBetweenVacuums)
 
 	if err != nil {
 		return nil, err
@@ -47,15 +54,10 @@ func suggestAutovacuumParameters(table Table, daysBetweenVacuums float64) (*Para
 	}
 
 	if scaleFactor > 0.001 {
-		return &Params{scaleFactor, defaultThreshold}, nil
+		return &Params{scaleFactor, initialThreshold}, nil
 	}
 
 	threshold, err := calculateThreshold(table, 0, daysBetweenVacuums)
-
-	if err != nil {
-		return nil, err
-	}
-
 	return &Params{0, threshold}, nil
 }
 
