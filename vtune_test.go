@@ -8,7 +8,6 @@ import (
 
 const (
 	defaultScaleFactor        = 0.2
-	defaultThreshold          = 50
 	defaultDaysBetweenVacuums = 1
 )
 
@@ -30,6 +29,40 @@ func TestNewTableEmpty(t *testing.T) {
 func TestNewTableNoUpdates(t *testing.T) {
 	_, err := NewTable(10000, 0)
 	assertError(t, err, ErrNoUpdates)
+}
+
+func TestSuggestAutovacuumParametersTableWithManyActiveRows(t *testing.T) {
+	table := Table{50000, 550}
+
+	wantScaleFactor := 0.01
+	wantThreshold := 50
+
+	params, _ := suggestAutovacuumParameters(table, defaultDaysBetweenVacuums)
+
+	if params.scaleFactor != wantScaleFactor {
+		t.Errorf("scaleFactor = %v, want %v", params.scaleFactor, wantScaleFactor)
+	}
+
+	if params.threshold != uint(wantThreshold) {
+		t.Errorf("threshold = %v, want %v", params.threshold, wantThreshold)
+	}
+}
+
+func TestSuggestAutovacuumParametersTableWithFewActiveRows(t *testing.T) {
+	table := Table{50000, 100}
+
+	wantScaleFactor := 0.0
+	wantThreshold := 100
+
+	params, _ := suggestAutovacuumParameters(table, defaultDaysBetweenVacuums)
+
+	if params.scaleFactor != wantScaleFactor {
+		t.Errorf("scaleFactor = %v, want %v", params.scaleFactor, wantScaleFactor)
+	}
+
+	if params.threshold != uint(wantThreshold) {
+		t.Errorf("threshold = %v, want %v", params.threshold, wantThreshold)
+	}
 }
 
 func TestCalculateScaleFactor(t *testing.T) {

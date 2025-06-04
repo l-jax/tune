@@ -78,8 +78,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, tea.Quit
 				}
 
-				m.scaleFactor, _ = calculateScaleFactor(*table, 50, 1.0)
+				params, err := suggestAutovacuumParameters(*table, 1.0)
 
+				if err != nil {
+					fmt.Println(err)
+					return m, tea.Quit
+				}
+
+				m.threshold = params.threshold
+				m.scaleFactor = params.scaleFactor
 				return m, tea.Quit
 			}
 

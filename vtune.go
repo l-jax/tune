@@ -4,14 +4,23 @@ import (
 	"fmt"
 )
 
-var ErrEmptyTable = fmt.Errorf("table must have one or more rows")
-var ErrNoUpdates = fmt.Errorf("table must have at least one update per day")
-var ErrNoDaysBetweenVacuums = fmt.Errorf("days between vacuums must be more than zero")
-var ErrNegativeScaleFactor = fmt.Errorf("scale factor must be positive or 0")
+const defaultThreshold = 50
+
+var (
+	ErrEmptyTable           = fmt.Errorf("table must have one or more rows")
+	ErrNoUpdates            = fmt.Errorf("table must have at least one update per day")
+	ErrNoDaysBetweenVacuums = fmt.Errorf("days between vacuums must be more than zero")
+	ErrNegativeScaleFactor  = fmt.Errorf("scale factor must be positive or 0")
+)
 
 type Table struct {
 	numberOfRows  uint
 	updatesPerDay uint
+}
+
+type Params struct {
+	scaleFactor float64
+	threshold   uint
 }
 
 func NewTable(numberOfRows, updatesPerDay uint) (*Table, error) {
@@ -24,6 +33,30 @@ func NewTable(numberOfRows, updatesPerDay uint) (*Table, error) {
 	}
 
 	return &Table{numberOfRows, updatesPerDay}, nil
+}
+
+func suggestAutovacuumParameters(table Table, daysBetweenVacuums float64) (*Params, error) {
+	scaleFactor, err := calculateScaleFactor(table, 50, daysBetweenVacuums)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if scaleFactor < 0 {
+		return nil, ErrNegativeScaleFactor
+	}
+
+	if scaleFactor > 0.001 {
+		return &Params{scaleFactor, defaultThreshold}, nil
+	}
+
+	threshold, err := calculateThreshold(table, 0, daysBetweenVacuums)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &Params{0, threshold}, nil
 }
 
 func calculateScaleFactor(table Table, baseThreshold uint, daysBetweenVacuums float64) (float64, error) {
