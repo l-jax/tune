@@ -1,4 +1,4 @@
-package internal
+package main
 
 type Params struct {
 	baseThreshold int
