@@ -69,10 +69,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			s := msg.String()
 
 			if s == "enter" && m.focusIndex == len(m.inputs) {
-				tuples, _ := strconv.ParseInt(m.inputs[0].Value(), 10, 64)
-				updates, _ := strconv.ParseInt(m.inputs[1].Value(), 10, 64)
+				numberOfRows, _ := strconv.ParseInt(m.inputs[0].Value(), 10, 64)
+				updatesPerDay, _ := strconv.ParseInt(m.inputs[1].Value(), 10, 64)
 
-				m.scaleFactor = getScaleFactorForVacuum(uint(tuples), uint(updates), 50, 0)
+				m.scaleFactor = getScaleFactorForVacuum(Table{uint(numberOfRows), uint(updatesPerDay)}, 50, 1.0)
 
 				return m, tea.Quit
 			}

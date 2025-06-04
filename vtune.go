@@ -1,16 +1,16 @@
 package main
 
-func GetVacuumsPerDay(tuples, updates, threshold uint, scaleFactor float64) float64 {
-	params := Params{threshold, scaleFactor}
-	return params.GetFrequency(tuples, updates)
+type Table struct {
+	numberOfRows  uint
+	updatesPerDay uint
 }
 
-func getScaleFactorForVacuum(rowsInTable, updatesPerDay, baseThreshold uint, daysBetweenVacuums float64) float64 {
-	updatesBeforeVacuum := float64(updatesPerDay) * daysBetweenVacuums
-	return (updatesBeforeVacuum - float64(baseThreshold)) / float64(rowsInTable)
+func getScaleFactorForVacuum(table Table, baseThreshold uint, daysBetweenVacuums float64) float64 {
+	updatesBeforeVacuum := float64(table.updatesPerDay) * daysBetweenVacuums
+	return (updatesBeforeVacuum - float64(baseThreshold)) / float64(table.numberOfRows)
 }
 
-func getThresholdForVacuum(rowsInTable, updatesPerDay uint, scaleFactor, daysBetweenVacuums float64) uint {
-	updatesBeforeVacuum := float64(updatesPerDay) * daysBetweenVacuums
-	return uint(updatesBeforeVacuum - (scaleFactor * float64(rowsInTable)))
+func getThresholdForVacuum(table Table, scaleFactor, daysBetweenVacuums float64) uint {
+	updatesBeforeVacuum := float64(table.updatesPerDay) * daysBetweenVacuums
+	return uint(updatesBeforeVacuum - (scaleFactor * float64(table.numberOfRows)))
 }
