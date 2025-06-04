@@ -10,9 +10,7 @@ import (
 )
 
 var (
-	rows      string
-	tuples    string
-	frequency float64
+	rows, tuples, frequency string
 )
 
 func main() {
@@ -44,12 +42,19 @@ func main() {
 					}
 					return nil
 				}),
-			huh.NewSelect[float64]().
-				Title("How often do you want to vacuum it?").
-				Options(
-					huh.NewOption("Every day", 1.0),
-				).
-				Value(&frequency),
+			huh.NewInput().
+				Title("How many days do you want between vacuums?").
+				Value(&frequency).
+				Validate(func(str string) error {
+					i, err := strconv.ParseFloat(str, 64)
+					if err != nil {
+						return ErrNotANumber
+					}
+					if i < 1 {
+						return ErrNoDaysBetweenVacuums
+					}
+					return nil
+				}),
 		),
 	)
 
@@ -72,12 +77,13 @@ func main() {
 			return lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Render(s)
 		}
 		fmt.Fprintf(&sb,
-			"%s\n\nYour table has %s rows with %s updates/day\n\n%s\n\nautovacuum_vacuum_scale_factor %s\n\nautovacuum_vacuum_threshold %s",
+			"%s\n\nYour table has %s rows with %s updates/day\n\nYou want to vacuum every %s days\n\n%s\n\nautovacuum_vacuum_scale_factor %s\n\nautovacuum_vacuum_threshold %s",
 			lipgloss.NewStyle().Bold(true).Render("FIX MY AUTOVACUUM"),
 			keyword(rows),
 			keyword(tuples),
-			lipgloss.NewStyle().Bold(true).Render("Try this:"),
-			keyword(strconv.FormatFloat(params.scaleFactor, 'f', 5, 64)),
+			keyword(frequency),
+			lipgloss.NewStyle().Bold(true).Render("Try this"),
+			keyword(strconv.FormatFloat(params.scaleFactor, 'f', 3, 64)),
 			keyword(strconv.FormatUint(params.threshold, 10)),
 		)
 
@@ -95,11 +101,12 @@ func main() {
 func calculateOutput() (*Params, error) {
 	r, _ := strconv.ParseUint(rows, 10, 64)
 	t, _ := strconv.ParseUint(tuples, 10, 64)
+	f, _ := strconv.ParseFloat(frequency, 64)
 	table, err := NewTable(r, t)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return suggestAutovacuumParameters(*table, frequency)
+	return suggestAutovacuumParameters(*table, f)
 }
