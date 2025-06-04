@@ -14,16 +14,16 @@ var (
 )
 
 type Table struct {
-	numberOfRows  uint
-	updatesPerDay uint
+	numberOfRows  uint64
+	updatesPerDay uint64
 }
 
 type Params struct {
 	scaleFactor float64
-	threshold   uint
+	threshold   uint64
 }
 
-func NewTable(numberOfRows, updatesPerDay uint) (*Table, error) {
+func NewTable(numberOfRows, updatesPerDay uint64) (*Table, error) {
 	if numberOfRows == 0 {
 		return nil, ErrEmptyTable
 	}
@@ -59,7 +59,7 @@ func suggestAutovacuumParameters(table Table, daysBetweenVacuums float64) (*Para
 	return &Params{0, threshold}, nil
 }
 
-func calculateScaleFactor(table Table, baseThreshold uint, daysBetweenVacuums float64) (float64, error) {
+func calculateScaleFactor(table Table, baseThreshold uint64, daysBetweenVacuums float64) (float64, error) {
 	if daysBetweenVacuums <= 0 {
 		return 0, fmt.Errorf("getting scale factor: %w", ErrNoDaysBetweenVacuums)
 	}
@@ -68,7 +68,7 @@ func calculateScaleFactor(table Table, baseThreshold uint, daysBetweenVacuums fl
 	return (updatesBeforeVacuum - float64(baseThreshold)) / float64(table.numberOfRows), nil
 }
 
-func calculateThreshold(table Table, scaleFactor, daysBetweenVacuums float64) (uint, error) {
+func calculateThreshold(table Table, scaleFactor, daysBetweenVacuums float64) (uint64, error) {
 	if daysBetweenVacuums <= 0 {
 		return 0, fmt.Errorf("getting threshold: %w", ErrNoDaysBetweenVacuums)
 	}
@@ -78,5 +78,5 @@ func calculateThreshold(table Table, scaleFactor, daysBetweenVacuums float64) (u
 	}
 
 	updatesBeforeVacuum := float64(table.updatesPerDay) * daysBetweenVacuums
-	return uint(updatesBeforeVacuum - (scaleFactor * float64(table.numberOfRows))), nil
+	return uint64(updatesBeforeVacuum - (scaleFactor * float64(table.numberOfRows))), nil
 }

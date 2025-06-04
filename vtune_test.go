@@ -35,7 +35,7 @@ func TestSuggestAutovacuumParametersTableWithManyActiveRows(t *testing.T) {
 	table := Table{50000, 550}
 
 	wantScaleFactor := 0.01
-	wantThreshold := 50
+	var wantThreshold uint64 = 50
 
 	params, _ := suggestAutovacuumParameters(table, defaultDaysBetweenVacuums)
 
@@ -43,7 +43,7 @@ func TestSuggestAutovacuumParametersTableWithManyActiveRows(t *testing.T) {
 		t.Errorf("scaleFactor = %v, want %v", params.scaleFactor, wantScaleFactor)
 	}
 
-	if params.threshold != uint(wantThreshold) {
+	if params.threshold != wantThreshold {
 		t.Errorf("threshold = %v, want %v", params.threshold, wantThreshold)
 	}
 }
@@ -52,7 +52,7 @@ func TestSuggestAutovacuumParametersTableWithFewActiveRows(t *testing.T) {
 	table := Table{50000, 100}
 
 	wantScaleFactor := 0.0
-	wantThreshold := 100
+	var wantThreshold uint64 = 100
 
 	params, _ := suggestAutovacuumParameters(table, defaultDaysBetweenVacuums)
 
@@ -60,7 +60,7 @@ func TestSuggestAutovacuumParametersTableWithFewActiveRows(t *testing.T) {
 		t.Errorf("scaleFactor = %v, want %v", params.scaleFactor, wantScaleFactor)
 	}
 
-	if params.threshold != uint(wantThreshold) {
+	if params.threshold != wantThreshold {
 		t.Errorf("threshold = %v, want %v", params.threshold, wantThreshold)
 	}
 }
@@ -99,7 +99,7 @@ func TestCalculateThresholdNegativeScaleFactor(t *testing.T) {
 }
 
 func TestProperties(t *testing.T) {
-	assertion := func(threshold uint) bool {
+	assertion := func(threshold uint64) bool {
 		if threshold > testTable.updatesPerDay {
 			return true
 		}
@@ -116,7 +116,7 @@ func TestProperties(t *testing.T) {
 	}
 }
 
-func assertVacuumsPerDay(t *testing.T, baseThreshold uint, scaleFactor, want float64) {
+func assertVacuumsPerDay(t *testing.T, baseThreshold uint64, scaleFactor, want float64) {
 	t.Helper()
 	autovacuumThreshold := (scaleFactor * float64(testTable.numberOfRows)) + float64(baseThreshold)
 	vacuumsPerDay := float64(testTable.updatesPerDay) / autovacuumThreshold
