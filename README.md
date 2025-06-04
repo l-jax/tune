@@ -1,9 +1,8 @@
 # Fix My Autovacuum
 
-Postgres database plagued by [autovacuum to prevent wraparound](https://www.postgresql.org/docs/current/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND)?
+Autovacuum parameter tuning on the command line. Built with [huh?](https://github.com/charmbracelet/huh)
 
-Need to tune your [autovacuum parameters](https://www.postgresql.org/docs/current/runtime-config-autovacuum.html) but not sure where to start?
+<img width="501" alt="image" src="https://github.com/user-attachments/assets/a709bc4a-5877-44fe-9d68-e39eafcec03e" />
 
-Fix My Autovacuum can help.
 
-Tell it about your tables and it will suggest values for `autovacuum_vacuum_threshold` and `autovacuum_vacuum_scale_factor`
+
