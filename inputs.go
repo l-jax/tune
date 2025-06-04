@@ -72,7 +72,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				tuples, _ := strconv.ParseInt(m.inputs[0].Value(), 10, 64)
 				updates, _ := strconv.ParseInt(m.inputs[1].Value(), 10, 64)
 
-				m.scaleFactor = getScaleFactorForDailyVacuum(uint(tuples), uint(updates), 50)
+				m.scaleFactor = getScaleFactorForVacuum(uint(tuples), uint(updates), 50, 0)
 
 				return m, tea.Quit
 			}

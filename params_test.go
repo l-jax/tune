@@ -16,7 +16,9 @@ func TestGetThreshold(t *testing.T) {
 	for name, test := range thresholdTests {
 		t.Run(name, func(t *testing.T) {
 			got := test.params.getThreshold(test.tuples)
-			assertInts(t, got, test.want)
+			if got != test.want {
+				t.Errorf("got %d, want %d", got, test.want)
+			}
 		})
 	}
 }

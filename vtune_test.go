@@ -1,66 +1,46 @@
 package main
 
 import (
-	"reflect"
 	"testing"
 	"testing/quick"
 )
 
+const (
+	defaultScaleFactor = 0.2
+	defaultThreshold   = 50
+	rowsInTable        = 50000
+	updatesPerDay      = 40000
+)
+
+var scaleFactorTests = map[string]struct {
+	daysBetweenVacuums, scaleFactor, vacuumsPerDay float64
+}{
+	"twice a day":    {daysBetweenVacuums: 0.5, vacuumsPerDay: 2.0},
+	"daily":          {daysBetweenVacuums: 1.0, vacuumsPerDay: 1.0},
+	"every two days": {daysBetweenVacuums: 2.0, vacuumsPerDay: 0.5},
+}
+
 func TestGetVacuumsPerDayWithDefaultParams(t *testing.T) {
-	var tuples uint = 1000
-	var updates uint = 100
 	want := 0.4
-
-	got := GetVacuumsPerDay(tuples, updates, 50, 0.2)
+	got := GetVacuumsPerDay(1000, 100, defaultThreshold, defaultScaleFactor)
 	assertFloats(t, got, want)
 }
 
-func TestGetScaleFactorForDailyVacuum(t *testing.T) {
-	var tuples uint = 1000
-	var updates uint = 100
-	want := 0.05
-
-	got := getScaleFactorForDailyVacuum(tuples, updates, 50)
-
-	assertFloats(t, got, want)
-}
-
-func TestGetThresholdForDailyVacuum(t *testing.T) {
-	var tuples uint = 1000
-	var updates uint = 100
-	var want uint = 50
-
-	got := getThresholdForDailyVacuum(tuples, updates, 0.05)
-
-	assertInts(t, got, want)
-}
-
-func TestGetParamsForDailyVacuum(t *testing.T) {
-	var tuples uint = 1000
-	var updates uint = 100
-
-	want := []Params{
-		{0, 0.1},
-		{5, 0.095},
-		{10, 0.09},
-		{20, 0.08},
-		{50, 0.05},
-		{100, 0},
+func TestGetScaleFactorForVacuum(t *testing.T) {
+	for name, test := range scaleFactorTests {
+		t.Run(name, func(t *testing.T) {
+			scaleFactor := getScaleFactorForVacuum(rowsInTable, updatesPerDay, defaultThreshold, test.daysBetweenVacuums)
+			assertVacuumsPerDay(t, rowsInTable, updatesPerDay, defaultThreshold, scaleFactor, test.vacuumsPerDay)
+		})
 	}
-
-	got := GetParamsForDailyVacuum(tuples, updates)
-
-	assertParams(t, got, want)
 }
 
-func TestGetTestThresholds(t *testing.T) {
-	var updates uint = 1000
-	want := []uint{0, 50, 100, 200, 500, 1000}
-
-	got := getTestThresholds(updates)
-
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v, want %v", got, want)
+func TestGetThresholdForVacuum(t *testing.T) {
+	for name, test := range scaleFactorTests {
+		t.Run(name, func(t *testing.T) {
+			threshold := getThresholdForVacuum(rowsInTable, updatesPerDay, defaultScaleFactor, test.daysBetweenVacuums)
+			assertVacuumsPerDay(t, rowsInTable, updatesPerDay, threshold, defaultScaleFactor, test.vacuumsPerDay)
+		})
 	}
 }
 
@@ -73,8 +53,8 @@ func TestProperties(t *testing.T) {
 			return true
 		}
 
-		scaleFactor := getScaleFactorForDailyVacuum(tuples, updates, threshold)
-		fromScaleFactor := getThresholdForDailyVacuum(tuples, updates, scaleFactor)
+		scaleFactor := getScaleFactorForVacuum(tuples, updates, threshold, 0)
+		fromScaleFactor := getThresholdForVacuum(tuples, updates, scaleFactor, 1.0)
 		return fromScaleFactor == threshold
 	}
 
@@ -85,16 +65,10 @@ func TestProperties(t *testing.T) {
 	}
 }
 
-func assertParams(t *testing.T, got []Params, want []Params) {
+func assertVacuumsPerDay(t *testing.T, tuples, updates, baseThreshold uint, scaleFactor, want float64) {
 	t.Helper()
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v, want %v", got, want)
-	}
-}
-
-func assertInts(t *testing.T, got, want uint) {
-	t.Helper()
-	if got != want {
-		t.Errorf("got %d, want %d", got, want)
+	vacuumsPerDay := GetVacuumsPerDay(tuples, updates, baseThreshold, scaleFactor)
+	if vacuumsPerDay != want {
+		t.Errorf("got %f, want %f", vacuumsPerDay, want)
 	}
 }
