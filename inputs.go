@@ -71,8 +71,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if s == "enter" && m.focusIndex == len(m.inputs) {
 				numberOfRows, _ := strconv.ParseInt(m.inputs[0].Value(), 10, 64)
 				updatesPerDay, _ := strconv.ParseInt(m.inputs[1].Value(), 10, 64)
+				table, err := NewTable(uint(numberOfRows), uint(updatesPerDay))
 
-				m.scaleFactor = getScaleFactorForVacuum(Table{uint(numberOfRows), uint(updatesPerDay)}, 50, 1.0)
+				if err != nil {
+					fmt.Println(err)
+					return m, tea.Quit
+				}
+
+				m.scaleFactor, _ = calculateScaleFactor(*table, 50, 1.0)
 
 				return m, tea.Quit
 			}

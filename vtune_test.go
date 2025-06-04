@@ -1,13 +1,15 @@
 package main
 
 import (
+	"errors"
 	"testing"
 	"testing/quick"
 )
 
 const (
-	defaultScaleFactor = 0.2
-	defaultThreshold   = 50
+	defaultScaleFactor        = 0.2
+	defaultThreshold          = 50
+	defaultDaysBetweenVacuums = 1
 )
 
 var testTable = Table{50000, 40000}
@@ -20,22 +22,47 @@ var scaleFactorTests = map[string]struct {
 	"every two days": {daysBetweenVacuums: 2.0, vacuumsPerDay: 0.5},
 }
 
-func TestGetScaleFactorForVacuum(t *testing.T) {
+func TestNewTableEmpty(t *testing.T) {
+	_, err := NewTable(0, 1000)
+	assertError(t, err, ErrEmptyTable)
+}
+
+func TestNewTableNoUpdates(t *testing.T) {
+	_, err := NewTable(10000, 0)
+	assertError(t, err, ErrNoUpdates)
+}
+
+func TestCalculateScaleFactor(t *testing.T) {
 	for name, test := range scaleFactorTests {
 		t.Run(name, func(t *testing.T) {
-			scaleFactor := getScaleFactorForVacuum(testTable, defaultThreshold, test.daysBetweenVacuums)
+			scaleFactor, _ := calculateScaleFactor(testTable, defaultThreshold, test.daysBetweenVacuums)
 			assertVacuumsPerDay(t, defaultThreshold, scaleFactor, test.vacuumsPerDay)
 		})
 	}
 }
 
-func TestGetThresholdForVacuum(t *testing.T) {
+func TestCalculateScaleFactorNoDaysBetweenVacuums(t *testing.T) {
+	_, err := calculateScaleFactor(testTable, defaultThreshold, 0)
+	assertError(t, err, ErrNoDaysBetweenVacuums)
+}
+
+func TestCalculateThresholdForVacuum(t *testing.T) {
 	for name, test := range scaleFactorTests {
 		t.Run(name, func(t *testing.T) {
-			threshold := getThresholdForVacuum(testTable, defaultScaleFactor, test.daysBetweenVacuums)
+			threshold, _ := calculateThreshold(testTable, defaultScaleFactor, test.daysBetweenVacuums)
 			assertVacuumsPerDay(t, threshold, defaultScaleFactor, test.vacuumsPerDay)
 		})
 	}
+}
+
+func TestCalculateThresholdNoDaysBetweenVacuums(t *testing.T) {
+	_, err := calculateThreshold(testTable, defaultScaleFactor, 0)
+	assertError(t, err, ErrNoDaysBetweenVacuums)
+}
+
+func TestCalculateThresholdNegativeScaleFactor(t *testing.T) {
+	_, err := calculateThreshold(testTable, -1, defaultDaysBetweenVacuums)
+	assertError(t, err, ErrNegativeScaleFactor)
 }
 
 func TestProperties(t *testing.T) {
@@ -44,8 +71,8 @@ func TestProperties(t *testing.T) {
 			return true
 		}
 
-		scaleFactor := getScaleFactorForVacuum(testTable, threshold, 0)
-		fromScaleFactor := getThresholdForVacuum(testTable, scaleFactor, 1.0)
+		scaleFactor, _ := calculateScaleFactor(testTable, threshold, defaultDaysBetweenVacuums)
+		fromScaleFactor, _ := calculateThreshold(testTable, scaleFactor, defaultDaysBetweenVacuums)
 		return fromScaleFactor == threshold
 	}
 
@@ -62,5 +89,12 @@ func assertVacuumsPerDay(t *testing.T, baseThreshold uint, scaleFactor, want flo
 	vacuumsPerDay := float64(testTable.updatesPerDay) / autovacuumThreshold
 	if vacuumsPerDay != want {
 		t.Errorf("got %f, want %f", vacuumsPerDay, want)
+	}
+}
+
+func assertError(t *testing.T, got error, want error) {
+	t.Helper()
+	if !errors.Is(got, want) {
+		t.Errorf("got %s, want %s", got, want)
 	}
 }
