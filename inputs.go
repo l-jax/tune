@@ -22,10 +22,11 @@ var (
 )
 
 type model struct {
-	focusIndex int
-	inputs     []textinput.Model
-	params     []Params
-	cursorMode cursor.Mode
+	focusIndex  int
+	inputs      []textinput.Model
+	cursorMode  cursor.Mode
+	threshold   uint
+	scaleFactor float64
 }
 
 func initialModel() model {
@@ -71,7 +72,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				tuples, _ := strconv.ParseInt(m.inputs[0].Value(), 10, 64)
 				updates, _ := strconv.ParseInt(m.inputs[1].Value(), 10, 64)
 
-				m.params = GetParamsForDailyVacuum(uint(tuples), uint(updates))
+				m.scaleFactor = getScaleFactorForDailyVacuum(uint(tuples), uint(updates), 50)
+
 				return m, tea.Quit
 			}
 

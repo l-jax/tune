@@ -15,7 +15,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if m, ok := m.(model); ok && len(m.params) != 0 {
-		fmt.Printf("do something")
+	if m, ok := m.(model); ok && m.scaleFactor != 0 {
+		fmt.Printf("Set your scale factor to %f for a daily vacuum\n", m.scaleFactor)
 	}
 }
