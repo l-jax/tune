@@ -77,12 +77,12 @@ func main() {
 			return lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Render(s)
 		}
 		fmt.Fprintf(&sb,
-			"%s\n\nYour table has %s rows with %s updates/day\n\nYou want to vacuum every %s days\n\n%s\n\nautovacuum_vacuum_scale_factor %s\n\nautovacuum_vacuum_threshold %s",
+			"%s\n\nYour table has %s rows and %s updates a day\n\nYou want autovacuum to run every %s days\n\n%s\n\nautovacuum_vacuum_scale_factor %s\n\nautovacuum_vacuum_threshold %s",
 			lipgloss.NewStyle().Bold(true).Render("FIX MY AUTOVACUUM"),
 			keyword(rows),
 			keyword(tuples),
 			keyword(frequency),
-			lipgloss.NewStyle().Bold(true).Render("Try this"),
+			lipgloss.NewStyle().Bold(true).Render("TRY THIS"),
 			keyword(strconv.FormatFloat(params.scaleFactor, 'f', 3, 64)),
 			keyword(strconv.FormatUint(params.threshold, 10)),
 		)
