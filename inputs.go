@@ -29,9 +29,15 @@ type model struct {
 	scaleFactor float64
 }
 
+var questions = []string{
+	"How many rows does your table have?",
+	"How many dead tuples per day?",
+	"How often do you want to vacuum it?",
+}
+
 func initialModel() model {
 	m := model{
-		inputs: make([]textinput.Model, 2),
+		inputs: make([]textinput.Model, len(questions)),
 	}
 
 	var t textinput.Model
@@ -40,15 +46,12 @@ func initialModel() model {
 		t.Cursor.Style = cursorStyle
 		t.CharLimit = 64
 		t.Width = 40
+		t.Placeholder = questions[i]
 
-		switch i {
-		case 0:
-			t.Placeholder = "How many rows does your table have?"
+		if i == 0 {
 			t.Focus()
 			t.PromptStyle = focusedStyle
 			t.TextStyle = focusedStyle
-		case 1:
-			t.Placeholder = "How many dead tuples per day?"
 		}
 
 		m.inputs[i] = t
