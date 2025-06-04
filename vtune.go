@@ -5,12 +5,12 @@ const (
 	maxScaleFactor = 1
 )
 
-func GetVacuumsPerDay(tuples, updates, threshold int, scaleFactor float64) float64 {
+func GetVacuumsPerDay(tuples, updates, threshold uint, scaleFactor float64) float64 {
 	params := Params{threshold, scaleFactor}
 	return params.GetFrequency(tuples, updates)
 }
 
-func GetParamsForDailyVacuum(tuples, updates int) []Params {
+func GetParamsForDailyVacuum(tuples, updates uint) []Params {
 	testThresholds := getTestThresholds(updates)
 	var params []Params
 
@@ -25,16 +25,16 @@ func GetParamsForDailyVacuum(tuples, updates int) []Params {
 	return params
 }
 
-func getScaleFactorForDailyVacuum(tuples, updates, threshold int) float64 {
+func getScaleFactorForDailyVacuum(tuples, updates, threshold uint) float64 {
 	return (float64(updates) - float64(threshold)) / float64(tuples)
 }
 
-func getThresholdForDailyVacuum(tuples, updates int, scaleFactor float64) int {
-	return int(float64(updates) - (scaleFactor * float64(tuples)))
+func getThresholdForDailyVacuum(tuples, updates uint, scaleFactor float64) uint {
+	return uint(float64(updates) - (scaleFactor * float64(tuples)))
 }
 
-func getTestThresholds(updates int) []int {
-	return []int{
+func getTestThresholds(updates uint) []uint {
+	return []uint{
 		0,
 		updates / 20,
 		updates / 10,

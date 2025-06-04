@@ -4,7 +4,7 @@ import "testing"
 
 var thresholdTests = map[string]struct {
 	params       Params
-	tuples, want int
+	tuples, want uint
 }{
 	"defaults":                {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, want: 250},
 	"zero base baseThreshold": {params: Params{baseThreshold: 0, scaleFactor: 0.2}, tuples: 1000, want: 200},
@@ -23,7 +23,7 @@ func TestGetThreshold(t *testing.T) {
 
 var frequencyTests = map[string]struct {
 	params          Params
-	tuples, updates int
+	tuples, updates uint
 	want            float64
 }{
 	"fewer than one per day":   {params: Params{baseThreshold: 50, scaleFactor: 0.2}, tuples: 1000, updates: 50, want: 0.2},
