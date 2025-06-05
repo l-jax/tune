@@ -11,8 +11,6 @@ import (
 
 var (
 	rows, updates, frequency string
-	isGrowing                bool
-	growth                   []string
 )
 
 func main() {
@@ -57,23 +55,7 @@ func main() {
 					}
 					return nil
 				}),
-			huh.NewConfirm().
-				Title("Do you expect your table to grow?").
-				Affirmative("Yes").
-				Negative("No").
-				Value(&isGrowing),
 		),
-		huh.NewGroup(
-			huh.NewMultiSelect[string]().
-				Title("Will your table get bigger or busier, or both?").
-				Value(&growth).
-				Options(
-					huh.NewOption("Bigger - more rows", "rows"),
-					huh.NewOption("Busier - more updates", "updates"),
-				),
-		).WithHideFunc(func() bool {
-			return !isGrowing
-		}),
 	)
 
 	err := form.Run()
