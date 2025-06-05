@@ -10,7 +10,9 @@ import (
 )
 
 var (
-	rows, tuples, frequency string
+	rows, updates, frequency string
+	isGrowing                bool
+	growth                   []string
 )
 
 func main() {
@@ -30,8 +32,8 @@ func main() {
 					return nil
 				}),
 			huh.NewInput().
-				Title("How many dead tuples per day?").
-				Value(&tuples).
+				Title("How many dead updates per day?").
+				Value(&updates).
 				Validate(func(str string) error {
 					i, err := strconv.ParseUint(str, 10, 64)
 					if err != nil {
@@ -55,7 +57,23 @@ func main() {
 					}
 					return nil
 				}),
+			huh.NewConfirm().
+				Title("Do you expect your table to grow?").
+				Affirmative("Yes").
+				Negative("No").
+				Value(&isGrowing),
 		),
+		huh.NewGroup(
+			huh.NewMultiSelect[string]().
+				Title("Will your table get bigger or busier, or both?").
+				Value(&growth).
+				Options(
+					huh.NewOption("Bigger - more rows", "rows"),
+					huh.NewOption("Busier - more updates", "updates"),
+				),
+		).WithHideFunc(func() bool {
+			return !isGrowing
+		}),
 	)
 
 	err := form.Run()
@@ -80,7 +98,7 @@ func main() {
 			"%s\n\nYour table has %s rows and %s updates a day\n\nYou want autovacuum to run every %s days\n\n%s\n\nautovacuum_vacuum_scale_factor %s\n\nautovacuum_vacuum_threshold %s",
 			lipgloss.NewStyle().Bold(true).Render("FIX MY AUTOVACUUM"),
 			keyword(rows),
-			keyword(tuples),
+			keyword(updates),
 			keyword(frequency),
 			lipgloss.NewStyle().Bold(true).Render("TRY THIS"),
 			keyword(strconv.FormatFloat(params.scaleFactor, 'f', 3, 64)),
@@ -100,9 +118,9 @@ func main() {
 
 func calculateOutput() (*Params, error) {
 	r, _ := strconv.ParseUint(rows, 10, 64)
-	t, _ := strconv.ParseUint(tuples, 10, 64)
+	u, _ := strconv.ParseUint(updates, 10, 64)
 	f, _ := strconv.ParseFloat(frequency, 64)
-	table, err := NewTable(r, t)
+	table, err := NewTable(r, u)
 
 	if err != nil {
 		return nil, err
