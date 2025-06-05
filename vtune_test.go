@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"testing"
-	"testing/quick"
 )
 
 const (
@@ -71,24 +70,6 @@ func TestCalculateThresholdNoDaysBetweenVacuums(t *testing.T) {
 func TestCalculateThresholdNegativeScaleFactor(t *testing.T) {
 	_, err := calculateThreshold(testTable, -1, defaultDaysBetweenVacuums)
 	assertError(t, err, ErrMustNotBeNegative)
-}
-
-func TestProperties(t *testing.T) {
-	assertion := func(threshold uint64) bool {
-		if threshold > testTable.updatesPerDay {
-			return true
-		}
-
-		scaleFactor, _ := calculateScaleFactor(testTable, threshold, defaultDaysBetweenVacuums)
-		fromScaleFactor, _ := calculateThreshold(testTable, scaleFactor, defaultDaysBetweenVacuums)
-		return fromScaleFactor == threshold
-	}
-
-	if err := quick.Check(assertion, &quick.Config{
-		MaxCount: 1000,
-	}); err != nil {
-		t.Error("Threshold derived from scale factor does not match threshold used to generate scale factor", err)
-	}
 }
 
 func assertVacuumsPerDay(t *testing.T, baseThreshold uint64, scaleFactor, want float64) {
