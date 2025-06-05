@@ -13,61 +13,43 @@ var (
 	rows, updates, frequency string
 )
 
+const (
+	howManyRows        = "How many rows does your table have?"
+	howManyUpdates     = "How many updates per day?"
+	howManyDaysBetween = "How many days do you want between vacuums?"
+)
+
 func main() {
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title("How many rows does your table have?").
+				Title(howManyRows).
+				Placeholder("1000000").
 				Value(&rows).
-				Validate(func(str string) error {
-					i, err := strconv.ParseUint(str, 10, 64)
-					if err != nil {
-						return ErrNotANumber
-					}
-					if i < 1 {
-						return ErrEmptyTable
-					}
-					return nil
-				}),
+				Validate(validateUint),
 			huh.NewInput().
-				Title("How many dead updates per day?").
+				Title(howManyUpdates).
+				Placeholder("10000").
 				Value(&updates).
-				Validate(func(str string) error {
-					i, err := strconv.ParseUint(str, 10, 64)
-					if err != nil {
-						return ErrNotANumber
-					}
-					if i < 1 {
-						return ErrNoUpdates
-					}
-					return nil
-				}),
+				Validate(validateUint),
 			huh.NewInput().
-				Title("How many days do you want between vacuums?").
+				Title(howManyDaysBetween).
+				Placeholder("1").
 				Value(&frequency).
-				Validate(func(str string) error {
-					i, err := strconv.ParseFloat(str, 64)
-					if err != nil {
-						return ErrNotANumber
-					}
-					if i < 1 {
-						return ErrNoDaysBetweenVacuums
-					}
-					return nil
-				}),
+				Validate(validateFloat),
 		),
 	)
 
 	err := form.Run()
 	if err != nil {
-		fmt.Println("Uh oh:", err)
+		fmt.Println("Huh? Error running form:", err)
 		os.Exit(1)
 	}
 
 	params, err := calculateOutput()
 
 	if err != nil {
-		fmt.Println("Uh oh:", err)
+		fmt.Println("Error calculating output:", err)
 		os.Exit(1)
 	}
 
@@ -98,15 +80,31 @@ func main() {
 	}
 }
 
+func validateFloat(str string) error {
+	i, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		return ErrMustBeNumeric
+	}
+	if i <= 0 {
+		return ErrMustBeGreaterThanZero
+	}
+	return nil
+}
+
+func validateUint(str string) error {
+	i, err := strconv.ParseUint(str, 10, 64)
+	if err != nil {
+		return ErrMustBeNumeric
+	}
+	if i <= 0 {
+		return ErrMustBeGreaterThanZero
+	}
+	return nil
+}
+
 func calculateOutput() (*Params, error) {
 	r, _ := strconv.ParseUint(rows, 10, 64)
 	u, _ := strconv.ParseUint(updates, 10, 64)
 	f, _ := strconv.ParseFloat(frequency, 64)
-	table, err := NewTable(r, u)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return suggestAutovacuumParameters(*table, f)
+	return suggestAutovacuumParameters(Table{r, u}, f)
 }

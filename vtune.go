@@ -7,11 +7,9 @@ import (
 const defaultThreshold = 50
 
 var (
-	ErrNotANumber           = fmt.Errorf("that's not a number")
-	ErrEmptyTable           = fmt.Errorf("table must have one or more rows")
-	ErrNoUpdates            = fmt.Errorf("table must have at least one update per day")
-	ErrNoDaysBetweenVacuums = fmt.Errorf("days between vacuums must be more than zero")
-	ErrNegativeScaleFactor  = fmt.Errorf("scale factor must be positive or 0")
+	ErrMustBeNumeric         = fmt.Errorf("must be a number")
+	ErrMustBeGreaterThanZero = fmt.Errorf("must be greater than zero")
+	ErrMustNotBeNegative     = fmt.Errorf("must not be negative")
 )
 
 type Table struct {
@@ -22,18 +20,6 @@ type Table struct {
 type Params struct {
 	scaleFactor float64
 	threshold   uint64
-}
-
-func NewTable(numberOfRows, updatesPerDay uint64) (*Table, error) {
-	if numberOfRows == 0 {
-		return nil, ErrEmptyTable
-	}
-
-	if updatesPerDay == 0 {
-		return nil, ErrNoUpdates
-	}
-
-	return &Table{numberOfRows, updatesPerDay}, nil
 }
 
 func suggestAutovacuumParameters(table Table, daysBetweenVacuums float64) (*Params, error) {
@@ -50,7 +36,7 @@ func suggestAutovacuumParameters(table Table, daysBetweenVacuums float64) (*Para
 	}
 
 	if scaleFactor < 0 {
-		return nil, ErrNegativeScaleFactor
+		return nil, ErrMustNotBeNegative
 	}
 
 	if scaleFactor > 0.001 {
@@ -63,7 +49,7 @@ func suggestAutovacuumParameters(table Table, daysBetweenVacuums float64) (*Para
 
 func calculateScaleFactor(table Table, baseThreshold uint64, daysBetweenVacuums float64) (float64, error) {
 	if daysBetweenVacuums <= 0 {
-		return 0, fmt.Errorf("getting scale factor: %w", ErrNoDaysBetweenVacuums)
+		return 0, fmt.Errorf("days between vacuums %w", ErrMustBeGreaterThanZero)
 	}
 
 	updatesBeforeVacuum := float64(table.updatesPerDay) * daysBetweenVacuums
@@ -72,11 +58,11 @@ func calculateScaleFactor(table Table, baseThreshold uint64, daysBetweenVacuums 
 
 func calculateThreshold(table Table, scaleFactor, daysBetweenVacuums float64) (uint64, error) {
 	if daysBetweenVacuums <= 0 {
-		return 0, fmt.Errorf("getting threshold: %w", ErrNoDaysBetweenVacuums)
+		return 0, fmt.Errorf("days between vacuums %w", ErrMustBeGreaterThanZero)
 	}
 
 	if scaleFactor < 0 {
-		return 0, fmt.Errorf("getting threshold: %w", ErrNegativeScaleFactor)
+		return 0, fmt.Errorf("scale factor %w", ErrMustNotBeNegative)
 	}
 
 	updatesBeforeVacuum := float64(table.updatesPerDay) * daysBetweenVacuums

@@ -31,16 +31,6 @@ var paramSuggestionTests = map[string]struct {
 	"updates less than default threshold lowers threshold": {Table{50000, 12}, 12, defaultDaysBetweenVacuums, 0.0},
 }
 
-func TestNewTableEmpty(t *testing.T) {
-	_, err := NewTable(0, 1000)
-	assertError(t, err, ErrEmptyTable)
-}
-
-func TestNewTableNoUpdates(t *testing.T) {
-	_, err := NewTable(10000, 0)
-	assertError(t, err, ErrNoUpdates)
-}
-
 func TestSuggestAutovacuumParameters(t *testing.T) {
 	for name, test := range paramSuggestionTests {
 		t.Run(name, func(t *testing.T) {
@@ -61,7 +51,7 @@ func TestCalculateScaleFactor(t *testing.T) {
 
 func TestCalculateScaleFactorNoDaysBetweenVacuums(t *testing.T) {
 	_, err := calculateScaleFactor(testTable, defaultThreshold, 0)
-	assertError(t, err, ErrNoDaysBetweenVacuums)
+	assertError(t, err, ErrMustBeGreaterThanZero)
 }
 
 func TestCalculateThresholdForVacuum(t *testing.T) {
@@ -75,12 +65,12 @@ func TestCalculateThresholdForVacuum(t *testing.T) {
 
 func TestCalculateThresholdNoDaysBetweenVacuums(t *testing.T) {
 	_, err := calculateThreshold(testTable, defaultScaleFactor, 0)
-	assertError(t, err, ErrNoDaysBetweenVacuums)
+	assertError(t, err, ErrMustBeGreaterThanZero)
 }
 
 func TestCalculateThresholdNegativeScaleFactor(t *testing.T) {
 	_, err := calculateThreshold(testTable, -1, defaultDaysBetweenVacuums)
-	assertError(t, err, ErrNegativeScaleFactor)
+	assertError(t, err, ErrMustNotBeNegative)
 }
 
 func TestProperties(t *testing.T) {
@@ -119,10 +109,10 @@ func assertError(t *testing.T, got error, want error) {
 
 func assertParams(t *testing.T, params *Params, wantScaleFactor float64, wantThreshold uint64) {
 	if params.scaleFactor != wantScaleFactor {
-		t.Errorf("scaleFactor = %v, want %v", params.scaleFactor, wantScaleFactor)
+		t.Errorf("got scale factor %v, want %v", params.scaleFactor, wantScaleFactor)
 	}
 
 	if params.threshold != wantThreshold {
-		t.Errorf("threshold = %v, want %v", params.threshold, wantThreshold)
+		t.Errorf("got threshold %v, want %v", params.threshold, wantThreshold)
 	}
 }
