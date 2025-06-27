@@ -1,4 +1,4 @@
-# 🧹 vtune
+# 🧹 tune
 
 postgres autovacuum parameter tuning on the command line. Built with [huh?](https://github.com/charmbracelet/huh)
 
